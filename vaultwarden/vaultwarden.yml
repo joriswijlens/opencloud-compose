@@ -1,0 +1,22 @@
+---
+services:
+  vaultwarden:
+    image: ${VAULTWARDEN_DOCKER_IMAGE:-vaultwarden/server}:${VAULTWARDEN_DOCKER_TAG:-latest}
+    user: ${OC_CONTAINER_UID_GID:-1000:1000}
+    networks:
+      opencloud-net:
+    environment:
+      DOMAIN: https://${VAULTWARDEN_DOMAIN:-vault.wijlens.com}
+      SIGNUPS_ALLOWED: "${VAULTWARDEN_SIGNUPS_ALLOWED:-false}"
+      INVITATIONS_ALLOWED: "${VAULTWARDEN_INVITATIONS_ALLOWED:-true}"
+      SHOW_PASSWORD_HINT: "${VAULTWARDEN_SHOW_PASSWORD_HINT:-false}"
+      ADMIN_TOKEN: "${VAULTWARDEN_ADMIN_TOKEN}"
+      WEBSOCKET_ENABLED: "true"
+    volumes:
+      - ${VAULTWARDEN_DATA_DIR:-vaultwarden-data}:/data
+    logging:
+      driver: ${LOG_DRIVER:-local}
+    restart: always
+
+volumes:
+  vaultwarden-data:
