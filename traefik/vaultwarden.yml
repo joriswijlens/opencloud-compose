@@ -2,14 +2,28 @@
 services:
   vaultwarden:
     labels:
+      # Main router for regular vault access
       - "traefik.enable=true"
       - "traefik.http.routers.vaultwarden.entrypoints=https"
-      - "traefik.http.routers.vaultwarden.rule=Host(`${VAULTWARDEN_DOMAIN:-vault.wijlens.com}`)"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vault.wijlens.com`) && !PathPrefix(`/admin`)"
       - "traefik.http.routers.vaultwarden.service=vaultwarden"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=letsencrypt"
+      
+      # Admin router with IP restriction
+      - "traefik.http.routers.vaultwarden-admin.entrypoints=https"
+      - "traefik.http.routers.vaultwarden-admin.rule=Host(`vault.wijlens.com`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.vaultwarden-admin.service=vaultwarden"
+      - "traefik.http.routers.vaultwarden-admin.middlewares=vaultwarden-admin-ipwhitelist"
+      - "traefik.http.routers.vaultwarden-admin.tls.certresolver=letsencrypt"
+      
+      # IP whitelist middleware for admin
+      - "traefik.http.middlewares.vaultwarden-admin-ipwhitelist.ipwhitelist.sourcerange=62.131.0.224/32"
+      
+      # Service definition
       - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
-      - "traefik.http.routers.vaultwarden.${TRAEFIK_SERVICES_TLS_CONFIG}"
+      
   traefik:
     networks:
       opencloud-net:
         aliases:
-          - ${VAULTWARDEN_DOMAIN:-vault.wijlens.com}
+          - vault.wijlens.com
